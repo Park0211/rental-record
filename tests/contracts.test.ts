@@ -5,6 +5,7 @@ import {
   observationProblem,
   todayInZone,
 } from '@rental-record/contracts';
+import { readConfig } from '../apps/api/src/config.js';
 
 describe('record meaning', () => {
   it('distinguishes an unrecorded item from an item that could not be inspected', () => {
@@ -38,5 +39,28 @@ describe('dates', () => {
     const instant = new Date('2025-01-01T03:00:00.000Z');
     expect(todayInZone('America/New_York', instant)).toBe('2024-12-31');
     expect(todayInZone('Asia/Seoul', instant)).toBe('2025-01-01');
+  });
+});
+
+describe('runtime boundaries', () => {
+  it('refuses production demo mode', () => {
+    expect(() => readConfig({ mode: 'demo', isProduction: true })).toThrow(/Demo mode/);
+  });
+
+  it('refuse to expose demo mode through a public bind address', () => {
+    expect(() => readConfig({ mode: 'demo', isProduction: false, host: '0.0.0.0' })).toThrow(
+      /loopback/,
+    );
+  });
+
+  it('refuses a non-local application origin in demo mode', () => {
+    expect(() =>
+      readConfig({
+        mode: 'demo',
+        isProduction: false,
+        host: '127.0.0.1',
+        appUrl: 'https://example.com',
+      }),
+    ).toThrow(/localhost|loopback/);
   });
 });
