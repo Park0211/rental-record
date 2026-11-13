@@ -1,5 +1,5 @@
 import type { SqlClient } from '../db';
-import { HttpError } from '../errors.js';
+import { HttpError } from '../errors';
 
 export type DbTime = Date | string;
 export type Condition = 'no_issue' | 'issue' | 'not_applicable' | 'not_checked' | null;

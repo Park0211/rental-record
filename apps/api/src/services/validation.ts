@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { isValidDate, ROOM_TYPES } from '@rental-record/contracts';
-import { HttpError } from '../errors.js';
+import { HttpError } from '../errors';
 
 export function parse<T>(schma: z.ZodType<T>, value: unknown, status = 400): T {
   const result = schma.safeParse(value);

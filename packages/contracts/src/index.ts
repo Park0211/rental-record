@@ -308,7 +308,7 @@ export const updateStaySchema = z
   })
   .partial()
   .strict();
-export type CreatedInput = z.input<typeof createStaySchema>;
+export type CreateStayInput = z.input<typeof createStaySchema>;
 export const observationSchema = z
   .object({
     condition: z.enum(CONDITIONS).nullable(),
