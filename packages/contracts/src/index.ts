@@ -131,7 +131,7 @@ export interface Stay {
   street: string;
   unit: string;
   zipCode: string;
-  timezone: string;
+  timeZone: string;
   archivedAt: string | null;
   deletedAt: string | null;
   createdAt: string;

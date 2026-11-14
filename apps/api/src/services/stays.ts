@@ -26,7 +26,7 @@ import {
   type RoomType,
   type ReportRow,
   type PhotoRow,
-} from './row';
+} from './rows';
 
 export async function roomsForStay(tx: SqlClient, stayId: string) {
   const rooms = await tx.query<RoomRow>(
