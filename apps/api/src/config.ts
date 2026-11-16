@@ -13,7 +13,7 @@ export interface AppConfig {
   databaseUrl?: string;
   databaseSsl: boolean;
   supabaseUrl?: string;
-  supabaseAnonkey?: string;
+  supabaseAnonKey?: string;
   supabaseServiceKey?: string;
   storageBucket: string;
   isProduction: boolean;
@@ -33,7 +33,7 @@ export function readConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     databaseUrl: process.env.DATABASE_URL || undefined,
     databaseSsl: process.env.DATABASE_SSL !== 'false',
     supabaseUrl: process.env.SUPABASE_URL || undefined,
-    supabaseAnonkey: process.env.SUPABASE_ANON_KEY || undefined,
+    supabaseAnonKey: process.env.SUPABASE_ANON_KEY || undefined,
     supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY || undefined,
     storageBucket: process.env.SUPABASE_STORAGE_BUCKET || 'condition-photos',
     isProduction: process.env.NODE_ENV === 'production',
@@ -52,7 +52,7 @@ export function readConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     !['http:', 'https:'].includes(origin.protocol) ||
     origin.origin !== config.appUrl.replace(/\/$/, '')
   )
-    throw new Error('APP_URL must be an HTTP origin without a path');
+    throw new Error('APP_URL must be an HTTP origin without a path.');
   config.appUrl = origin.origin;
   config.dataDir = path.resolve(config.dataDir);
   if (config.mode === 'demo') {
@@ -66,7 +66,7 @@ export function readConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     for (const key of [
       'databaseUrl',
       'supabaseUrl',
-      'supabaseAnonkey',
+      'supabaseAnonKey',
       'supabaseServiceKey',
     ] as const) {
       if (!config[key]) throw new Error(`Missing configuration: ${key}`);

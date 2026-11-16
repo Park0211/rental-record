@@ -1,5 +1,5 @@
-import type { SqlClient } from '../db';
-import { HttpError } from '../errors';
+import type { SqlClient } from '../db.js';
+import { HttpError } from '../errors.js';
 
 export type DbTime = Date | string;
 export type Condition = 'no_issue' | 'issue' | 'not_applicable' | 'not_checked' | null;
@@ -29,7 +29,7 @@ export interface RoomRow {
   room_type: RoomType;
   sort_order: number;
 }
-export interface itemRow {
+export interface ItemRow {
   id: string;
   stay_id: string;
   room_id: string;
@@ -128,12 +128,12 @@ export function inspectionView(row: InspectionRow) {
     editVersion: row.edit_version,
     baselineReportId: row.baseline_report_id,
     reportCount: Number(row.report_count ?? 0),
-    latestReportId: row.baseline_report_id ?? null,
+    latestReportId: row.latest_report_id ?? null,
     createdAt: iso(row.created_at),
     updatedAt: iso(row.updated_at),
   };
 }
-export function itemView(row: itemRow) {
+export function itemView(row: ItemRow) {
   return {
     id: row.id,
     stayId: row.stay_id,

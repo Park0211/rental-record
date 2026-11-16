@@ -9,13 +9,13 @@ import { readConfig } from '../apps/api/src/config.js';
 
 describe('record meaning', () => {
   it('distinguishes an unrecorded item from an item that could not be inspected', () => {
-    expect(observationProblem(null, 'Wating for keys')).not.toBeNull();
+    expect(observationProblem(null, 'Waiting for keys')).not.toBeNull();
     expect(observationProblem('not_checked', 'The door was locked.')).toBeNull();
     expect(observationProblem('no_issue', '')).toBeNull();
   });
 
   it('does not infer unchanged damage or a repair from two condition selections', () => {
-    expect(conditionComparison('issue', 'issue')).toBe('review_note');
+    expect(conditionComparison('issue', 'issue')).toBe('review_notes');
     expect(conditionComparison('issue', 'no_issue')).toBe('changed');
     expect(conditionComparison('not_checked', 'no_issue')).toBe('unavailable');
     expect(conditionComparison(null, 'no_issue')).toBe('unrecorded');
@@ -23,8 +23,8 @@ describe('record meaning', () => {
 });
 
 describe('dates', () => {
-  it.each(['2025-02-29', '2025-02-30', '2025-13-01', '2025-2-01', 'invaild'])(
-    'reject the invaild calendar date %s',
+  it.each(['2025-02-29', '2025-02-30', '2025-13-01', '2025-2-01', 'invalid'])(
+    'rejects the invalid calendar date %s',
     (date) => {
       expect(isValidDate(date)).toBe(false);
     },
@@ -47,7 +47,7 @@ describe('runtime boundaries', () => {
     expect(() => readConfig({ mode: 'demo', isProduction: true })).toThrow(/Demo mode/);
   });
 
-  it('refuse to expose demo mode through a public bind address', () => {
+  it('refuses to expose demo mode through a public bind address', () => {
     expect(() => readConfig({ mode: 'demo', isProduction: false, host: '0.0.0.0' })).toThrow(
       /loopback/,
     );

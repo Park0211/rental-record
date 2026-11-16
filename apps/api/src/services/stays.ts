@@ -7,10 +7,10 @@ import {
   updateStaySchema,
   type CreateStayInput,
 } from '@rental-record/contracts';
-import type { Database, SqlClient } from '../db';
-import type { PhotoStorage } from '../storage';
-import { HttpError } from '../errors';
-import { parse } from './validation';
+import type { Database, SqlClient } from '../db.js';
+import type { PhotoStorage } from '../storage.js';
+import { HttpError } from '../errors.js';
+import { parse } from './validation.js';
 import {
   bumpVersion,
   inspectionView,
@@ -21,19 +21,19 @@ import {
   structureEditable,
   type StayRow,
   type RoomRow,
-  type itemRow,
+  type ItemRow,
   type InspectionRow,
   type RoomType,
   type ReportRow,
   type PhotoRow,
-} from './rows';
+} from './rows.js';
 
 export async function roomsForStay(tx: SqlClient, stayId: string) {
   const rooms = await tx.query<RoomRow>(
     'SELECT * FROM app.rooms WHERE stay_id = $1 ORDER BY sort_order, id',
     [stayId],
   );
-  const items = await tx.query<itemRow>(
+  const items = await tx.query<ItemRow>(
     'SELECT * FROM app.check_items WHERE stay_id = $1 ORDER BY sort_order, id',
     [stayId],
   );
@@ -51,7 +51,7 @@ export async function inspectionsForStay(tx: SqlClient, stayId: string) {
   const result = await tx.query<InspectionRow>(
     `SELECT i.*,
         (SELECT count(*) FROM app.reports r WHERE r.inspection_id = i.id) AS report_count,
-        (SELECT id FROM app.reports r WHERE r.inspection_id = i.id ORDER BY report_version DESC LIMIT 1) AS LATEST_report_id
+        (SELECT id FROM app.reports r WHERE r.inspection_id = i.id ORDER BY report_version DESC LIMIT 1) AS latest_report_id
         FROM app.inspections i WHERE i.stay_id = $1 ORDER BY kind`,
     [stayId],
   );
@@ -78,7 +78,7 @@ async function insertRoom(
       [itemId, stayId, roomId, itemName, index],
     );
     await tx.query(
-      'INSERT INTO app.obervations (id,stay_id,inspection_id,item_id) VALUES ($1,$2,$3,$4)',
+      'INSERT INTO app.observations (id,stay_id,inspection_id,item_id) VALUES ($1,$2,$3,$4)',
       [randomUUID(), stayId, inspectionId, itemId],
     );
   }
@@ -118,7 +118,7 @@ export async function createStay(db: Database, userId: string, input: CreateStay
     for (const [index, type] of data.roomTypes.entries()) {
       counts[type] = (counts[type] ?? 0) + 1;
       const suffix =
-        data.roomTypes.filter((value) => value === type).length > 1 ? `${counts[type]}` : '';
+        data.roomTypes.filter((value) => value === type).length > 1 ? ` ${counts[type]}` : '';
       await insertRoom(tx, stayId, inspectionId, ROOM_LABELS[type] + suffix, type, index);
     }
     return { stay: stayView(result.rows[0]!), inspection: inspectionView(inspection.rows[0]!) };
@@ -131,7 +131,7 @@ export async function listStays(
   query: { q: string; archived: string; page: number; pageSize: number },
 ) {
   const values = [userId, `%${query.q.replace(/[\\%_]/g, '\\$&')}%`, query.archived];
-  const where = `owner_id = $1 AND (title ILIKE $2 ESCAPE '\\' OR (delated_at IS NULL AND city ILIKE $2 ESCAPE '\\'))
+  const where = `owner_id = $1 AND (title ILIKE $2 ESCAPE '\\' OR (deleted_at IS NULL AND city ILIKE $2 ESCAPE '\\'))
         AND (deleted_at IS NOT NULL OR $3 = 'all' OR (archived_at IS NOT NULL) = ($3 = 'true'))`;
   const count = await db.query<{ count: string }>(
     `SELECT count(*) AS count FROM app.stays WHERE ${where}`,
@@ -254,11 +254,11 @@ async function findRoom(tx: SqlClient, roomId: string) {
   return result.rows[0];
 }
 async function findItem(tx: SqlClient, itemId: string) {
-  const result = await tx.query<itemRow>('SELECT * FROM app.check_items WHERE id = $1', [itemId]);
+  const result = await tx.query<ItemRow>('SELECT * FROM app.check_items WHERE id = $1', [itemId]);
   if (!result.rows[0]) throw new HttpError(404, 'NOT_FOUND', 'This item is not available.');
   return result.rows[0];
 }
-async function CheckItemLimit(tx: SqlClient, stayId: string, adding: number) {
+async function checkItemLimit(tx: SqlClient, stayId: string, adding: number) {
   const result = await tx.query<{ count: string }>(
     'SELECT count(*) AS count FROM app.check_items WHERE stay_id = $1',
     [stayId],
@@ -281,7 +281,7 @@ export async function addRoom(
     );
     if (Number(result.rows[0]!.count) >= LIMITS.rooms)
       throw new HttpError(422, 'ROOM_LIMIT', `A record can have up to ${LIMITS.rooms} rooms.`);
-    await CheckItemLimit(tx, stayId, DEFAULT_ITEMS[data.roomType].length);
+    await checkItemLimit(tx, stayId, DEFAULT_ITEMS[data.roomType].length);
     const id = await insertRoom(
       tx,
       stayId,
@@ -298,11 +298,11 @@ export async function renameRoom(
   db: Database,
   userId: string,
   roomId: string,
-  data: { name: string; expectedEditversion: number },
+  data: { name: string; expectedEditVersion: number },
 ) {
   return db.transaction(async (tx) => {
     const room = await findRoom(tx, roomId);
-    const inspection = await lockStructure(tx, userId, room.stay_id, data.expectedEditversion);
+    const inspection = await lockStructure(tx, userId, room.stay_id, data.expectedEditVersion);
     const result = await tx.query('UPDATE app.rooms SET name=$2 WHERE id=$1', [roomId, data.name]);
     if (!result.rowCount) throw new HttpError(404, 'NOT_FOUND', 'This room is not available.');
     return { editVersion: await bumpVersion(tx, inspection.id) };
@@ -319,7 +319,7 @@ export async function addItem(
     const room = await findRoom(tx, roomId);
     const inspection = await lockStructure(tx, userId, room.stay_id, data.expectedEditVersion);
     await findRoom(tx, roomId);
-    await CheckItemLimit(tx, room.stay_id, 1);
+    await checkItemLimit(tx, room.stay_id, 1);
     const order = await tx.query<{ next_order: number }>(
       'SELECT coalesce(max(sort_order)+1,0) AS next_order FROM app.check_items WHERE room_id=$1',
       [roomId],
@@ -380,7 +380,7 @@ export async function removeStructure(
       'DELETE FROM app.photos WHERE observation_id IN (SELECT id FROM app.observations WHERE item_id = ANY($1::uuid[]))',
       [itemIds],
     );
-    await tx.query('DELETE FROM app.observations WHERE item_id = ANY($1::uuid[]', [itemIds]);
+    await tx.query('DELETE FROM app.observations WHERE item_id = ANY($1::uuid[])', [itemIds]);
     await tx.query('DELETE FROM app.check_items WHERE id = ANY($1::uuid[])', [itemIds]);
     if (kind === 'room') await tx.query('DELETE FROM app.rooms WHERE id=$1', [id]);
     return {
@@ -388,7 +388,7 @@ export async function removeStructure(
       keys: photos.rows.flatMap((photo) => [photo.storage_key, photo.preview_key]),
     };
   });
-  //Orphan cleanup can finish this if the storage service is temporarily unavailable.
+  // Orphan cleanup can finish this if the storage service is temporarily unavailable.
   if (result.keys.length) await storage.remove(result.keys).catch(() => undefined);
   return { editVersion: result.editVersion };
 }

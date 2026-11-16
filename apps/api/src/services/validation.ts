@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import { isValidDate, ROOM_TYPES } from '@rental-record/contracts';
-import { HttpError } from '../errors';
+import { HttpError } from '../errors.js';
 
-export function parse<T>(schma: z.ZodType<T>, value: unknown, status = 400): T {
-  const result = schma.safeParse(value);
+export function parse<T>(schema: z.ZodType<T>, value: unknown, status = 400): T {
+  const result = schema.safeParse(value);
   if (!result.success) {
     throw new HttpError(
       status,
@@ -55,7 +55,7 @@ export const shareBody = z
 export const deleteStayBody = z.object({ confirmationTitle: z.string() }).strict();
 export const photoBody = z
   .object({
-    ClientUploadId: uuid,
+    clientUploadId: uuid,
     expectedEditVersion: z
       .string()
       .regex(/^[1-9]\d*$/)

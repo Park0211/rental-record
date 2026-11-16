@@ -9,10 +9,10 @@ import {
     type ReportSnapshot,
     type Baseline,
 } from '@rental-record/contracts';
-import type { Database, SqlClient } from '../db';
-import { HttpError } from '../errors';
-import { parse, completeBody, inspectionBody, moveOutBody} from './validation';
-import { roomsForStay, inspectionsForStay } from './stays';
+import type { Database, SqlClient } from '../db.js';
+import { HttpError } from '../errors.js';
+import { parse, completeBody, inspectionBody, moveOutBody} from './validation.js';
+import { roomsForStay, inspectionsForStay } from './stays.js';
 import {
     bumpVersion,
     editable,
@@ -26,7 +26,7 @@ import {
     type ObservationRow,
     type PhotoRow,
     type ReportRow, 
-} from './rows';
+} from './rows.js';
 
 async function baselineFor(
     tx: SqlClient,
@@ -101,7 +101,7 @@ async function readInspection(
 ): Promise<InspectionView> {
     const rooms = await roomsForStay(tx, stay.id);
     const observations = await tx.query<ObservationRow>(
-        'SELECT * FROM app.obervations WHERE inspection_id=$1',
+        'SELECT * FROM app.observations WHERE inspection_id=$1',
         [inspection.id],
     );
     const photos = await tx.query<PhotoRow>(
@@ -233,7 +233,7 @@ export async function completeInspection(
                 throw new HttpError(
                   409,
                   'REQUEST_ID_REUSED',
-                  'Use a new request ID for a different completion request.'
+                  'Use a new request ID for a different completion request.',
                 );
             return { reportId: previous.rows[0].id, editVersion: inspection.edit_version }; 
         }
@@ -331,7 +331,7 @@ export async function reopenInspection(
     });
 }
 
-export async function starMoveOut(db: Database, userId: string, stayId: string, input: unknown) {
+export async function startMoveOut(db: Database, userId: string, stayId: string, input: unknown) {
     const data = parse(moveOutBody, input);
     return db.transaction(async (tx) => {
         const stay = await ownedStay(tx, userId,stayId, true);

@@ -43,12 +43,12 @@ export function createStorage(config: AppConfig): PhotoStorage {
           upsert: false,
           cacheControl: '0',
         });
-        if (error) throw new Error('photo storage write failed.', { cause: error });
+        if (error) throw new Error('Photo storage write failed.', { cause: error });
       },
       async get(key) {
         checkKey(key);
         const { data, error } = await bucket.download(key);
-        if (error || !data) throw new Error('photo storage read failed.', { cause: error });
+        if (error || !data) throw new Error('Photo storage read failed.', { cause: error });
         return Buffer.from(await data.arrayBuffer());
       },
       async remove(keys) {

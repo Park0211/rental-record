@@ -48,7 +48,7 @@ export const errorHandler: ErrorRequestHandler = (error: unknown, _req, res, _ne
     res.status(413).json({
       error: {
         code: 'FILE_TOO_LARGE',
-        message: 'Choose a photo no larger than 10 MiB',
+        message: 'Choose a photo no larger than 10 MiB.',
         requestId,
       },
     });
@@ -60,13 +60,13 @@ export const errorHandler: ErrorRequestHandler = (error: unknown, _req, res, _ne
     });
     return;
   }
-  if (known.type === 'entity.parse.filed') {
+  if (known.type === 'entity.parse.failed') {
     res.status(400).json({
       error: { code: 'INVALID_JSON', message: 'The request body is not valid JSON.', requestId },
     });
     return;
   }
-
+  // Do not log request URLs: shared-report tokens are carried in the path.
   console.error('Request failed', {
     requestId,
     name: error instanceof Error ? error.name : 'UnknownError',

@@ -58,6 +58,7 @@ export const STATE_CODES = [
   'LA',
   'ME',
   'MA',
+  'MD',
   'MI',
   'MN',
   'MS',
@@ -97,7 +98,7 @@ export const TIME_ZONES = [
   'America/Anchorage',
   'America/Adak',
   'Pacific/Honolulu',
-  'America/indiana/Indianapolis',
+  'America/Indiana/Indianapolis',
   'America/Detroit',
   'America/Boise',
 ] as const;
@@ -122,7 +123,6 @@ export interface PublicConfig {
   supabaseUrl?: string;
   supabaseAnonKey?: string;
 }
-
 export interface Stay {
   id: string;
   title: string;
@@ -263,7 +263,7 @@ export interface StaySetup {
   inspection: InspectionSummary;
   editable: boolean;
 }
-export interface comparison {
+export interface Comparison {
   stay: Stay;
   baseline: Baseline;
   current: InspectionSnapshot;
@@ -291,7 +291,7 @@ export const stayFields = {
     } catch {
       return false;
     }
-  }, 'Choose a vaild time zone.'),
+  }, 'Choose a valid time zone.'),
 };
 export const createStaySchema = z
   .object({ ...stayFields, roomTypes: z.array(z.enum(ROOM_TYPES)).min(1).max(LIMITS.rooms) })
@@ -304,7 +304,7 @@ export const updateStaySchema = z
     zipCode: z
       .string()
       .trim()
-      .regex(/^$|^\d{5}(-\d{4})?$/, 'use a 5-digit ZIP code or ZIP+4'),
+      .regex(/^$|^\d{5}(-\d{4})?$/, 'Use a 5-digit ZIP code or ZIP+4'),
   })
   .partial()
   .strict();
@@ -354,10 +354,10 @@ export function observationProblem(condition: Condition, notes: string): string 
 export function conditionComparison(
   before: Condition,
   after: Condition,
-): 'unrecorded' | 'unavailable' | 'changed' | 'review_note' | 'same_selection' {
+): 'unrecorded' | 'unavailable' | 'changed' | 'review_notes' | 'same_selection' {
   if (before === null || after === null) return 'unrecorded';
   if (before === 'not_checked' || after === 'not_checked') return 'unavailable';
   if (before !== after) return 'changed';
-  if (before === 'issue') return 'review_note';
+  if (before === 'issue') return 'review_notes';
   return 'same_selection';
 }

@@ -98,7 +98,7 @@ export async function migrate(db: Database): Promise<void> {
     'CREATE SCHEMA IF NOT EXISTS app; REVOKE ALL ON SCHEMA app FROM PUBLIC; CREATE TABLE IF NOT EXISTS app.schema_migrations (name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())',
   );
   const directory = path.resolve('db/migrations');
-  const files = (await fs.readdir(directory)).filter((name) => /^\d+.\sql$/.test(name)).sort();
+  const files = (await fs.readdir(directory)).filter((name) => /^\d+.*\.sql$/.test(name)).sort();
   for (const name of files) {
     await db.transaction(async (tx) => {
       // The same lock is used by both startup and the explicit migration command.
@@ -109,7 +109,7 @@ export async function migrate(db: Database): Promise<void> {
       if (existing.rowCount) return;
       const sql = await fs.readFile(path.join(directory, name), 'utf8');
       await tx.exec(sql);
-      await tx.query('INSERT INTO app.schema_migratkons (name) VALUES ($1)', [name]);
+      await tx.query('INSERT INTO app.schema_migrations (name) VALUES ($1)', [name]);
     });
   }
 }

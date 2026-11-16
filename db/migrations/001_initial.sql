@@ -14,7 +14,7 @@ CREATE TABLE app.stays (
     archived_at timestamptz,
     deleted_at timestamptz,
     created_at timestamptz NOT NULL DEFAULT now(),
-    updateed_at timestamptz NOT NULL DEFAULT now()
+    updated_at timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE app.rooms (
@@ -39,8 +39,8 @@ CREATE TABLE app.check_items (
 CREATE TABLE app.inspections (
     id uuid PRIMARY KEY,
     stay_id uuid NOT NULL REFERENCES app.stays(id),
-    kind text NOT NULL CHECK (kind IN ('move_in', 'move_out')),
-    status text NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'completed')),
+    kind text NOT NULL CHECK (kind IN ('move_in','move_out')),
+    status text NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','completed')),
     inspection_date date,
     edit_version integer NOT NULL DEFAULT 1 CHECK (edit_version > 0),
     baseline_report_id uuid,
@@ -57,7 +57,7 @@ CREATE TABLE app.observations (
     stay_id uuid NOT NULL,
     inspection_id uuid NOT NULL,
     item_id uuid NOT NULL,
-    condition text CHECK (condition IN ('no_issue', 'issue', 'not_applicable', 'not_checked')),
+    condition text CHECK (condition IN ('no_issue','issue','not_applicable','not_checked')),
     notes text NOT NULL DEFAULT '' CHECK (char_length(notes) <= 2000),
     updateed_at timestamptz NOT NULL DEFAULT now(),
     UNIQUE (inspection_id, item_id),
@@ -74,7 +74,7 @@ CREATE TABLE app.photos (
     source_sha256 text NOT NULL CHECK (char_length(source_sha256) = 64),
     storage_key text NOT NULL UNIQUE,
     preview_key text NOT NULL UNIQUE,
-    status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'ready', 'failed')),
+    status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','ready','failed')),
     stored_mime text NOT NULL DEFAULT 'image/webp',
     byte_size integer,
     width integer,
@@ -84,7 +84,7 @@ CREATE TABLE app.photos (
     last_error text,
     UNIQUE (stay_id, client_upload_id),
     UNIQUE (id, stay_id),
-    FOREIGN KEY (observation_id, stay_id) REFERENCES app.observations(id, stay_id)    
+    FOREIGN KEY (observation_id, stay_id) REFERENCES app.observations(id, stay_id)
 );
 
 CREATE TABLE app.reports (
@@ -128,13 +128,13 @@ CREATE TABLE app.share_links (
 );
 
 CREATE INDEX stays_owner_updated_idx ON app.stays(owner_id, archived_at, updated_at DESC);
-CREATE INDEX room_stay_order_idx ON app.rooms(stay_id, sort_order);
+CREATE INDEX rooms_stay_order_idx ON app.rooms(stay_id, sort_order);
 CREATE INDEX items_room_order_idx ON app.check_items(room_id, sort_order);
 CREATE INDEX observations_inspection_idx ON app.observations(inspection_id);
 CREATE INDEX photos_observation_current_idx ON app.photos(observation_id, removed_at, status);
 CREATE INDEX reports_inspection_version_idx ON app.reports(inspection_id, report_version DESC);
 CREATE INDEX report_photos_photo_idx ON app.report_photos(photo_id);
-CREATE INDEX share_report_idx ON app.share_links(report_id, created_at DESC);
+CREATE INDEX shares_report_idx ON app.share_links(report_id, created_at DESC);
 CREATE UNIQUE INDEX shares_one_unrevoked_idx ON app.share_links(report_id) WHERE revoked_at IS NULL;
 
 CREATE FUNCTION app.reject_report_update() RETURNS trigger LANGUAGE plpgsql AS $$
