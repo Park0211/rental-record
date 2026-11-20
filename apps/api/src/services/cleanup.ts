@@ -29,7 +29,7 @@ export async function purgeDeletedStay({ db, storage }: Dependencies, stayId: st
       await tx.query('DELETE FROM app.reports WHERE stay_id=$1 AND kind=$2', [stayId, kind]);
       await tx.query(
         `DELETE FROM app.photos WHERE observation_id IN
-                (SELECT o.id FROM app.observation o JOIN app.inspections i ON i.id=o.inspection_id WHERE i.stay_id=$1 AND i.kind=$2)`,
+                (SELECT o.id FROM app.observations o JOIN app.inspections i ON i.id=o.inspection_id WHERE i.stay_id=$1 AND i.kind=$2)`,
         [stayId, kind],
       );
       await tx.query(
@@ -137,7 +137,7 @@ export async function cleanupResources(deps: Dependencies) {
   try {
     const files = await storage.list();
     const current = await db.query<{ storage_key: string; preview_key: string }>(
-      'SELECT storage_key.preview_key FROM app.photos',
+      'SELECT storage_key,preview_key FROM app.photos',
     );
     const known = new Set(current.rows.flatMap((row) => [row.storage_key, row.preview_key]));
     const cutoff = Date.now() - 86400000;

@@ -84,7 +84,7 @@ async function sharedReportRow(db: Database, token: string) {
   const result = await db.query<ReportRow>(
     `SELECT r.* FROM app.share_links l JOIN app.reports r ON r.id=l.report_id
         JOIN app.stays s ON s.id=l.stay_id WHERE l.token_hash=$1 AND l.revoked_at IS NULL
-        AND l.expired_at>now() AND s.deleted_at IS NULL`,
+        AND l.expires_at>now() AND s.deleted_at IS NULL`,
     [hash],
   );
   if (!result.rows[0])
