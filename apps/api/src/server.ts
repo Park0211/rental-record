@@ -24,7 +24,7 @@ async function cleanup() {
         const result = await cleanupResources({ db, storage });
         if (result.failures) console.warn('Some photo cleanup operations will be retried. ');
     } catch {
-        console.warn('Photo cleanup coould not run. It will be retired.');
+        console.warn('Photo cleanup could not run. It will be retired.');
     } finally {
         cleaning = false;
     }

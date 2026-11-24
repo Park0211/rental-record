@@ -44,7 +44,7 @@ export function authenticate(config: AppConfig): RequestHandler {
           auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
         })
       : null;
-  return async (req, _parse, next) => {
+  return async (req, _res, next) => {
     const authorization = req.get('Authorization');
     if (!authorization?.startsWith('Bearer '))
       throw new HttpError(401, 'AUTH_REQUIRED', 'Sign in to continue.');

@@ -117,7 +117,7 @@ export async function getSharedPhoto(
   } catch {
     throw new HttpError(503, 'PHOTO_UNAVAILABLE', 'The photo could not be loaded. Try again.');
   }
-  // A slow storage request should not outlive a revovation unnoticed.
+  // A slow storage request should not outlive a revocation unnoticed.
   await sharedReportRow(db, token);
   return bytes;
 }

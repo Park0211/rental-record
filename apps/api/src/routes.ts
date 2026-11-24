@@ -122,8 +122,8 @@ export function createBusinessRouter({ db, storage, config }: Dependencies) {
     router.get('/me', (req, res) => {
         res.json(req.user);
     });
-    router.get('/stays', async (require, res) => {
-        res.json(await listStays(db,require.user!.id, listQuery(require.query)));
+    router.get('/stays', async (req, res) => {
+        res.json(await listStays(db,req.user!.id, listQuery(req.query)));
     });
     router.post('/stays', async (req, res) => {
         res.status(201).json(await createStay(db, req.user!.id, req.body));
@@ -148,7 +148,7 @@ export function createBusinessRouter({ db, storage, config }: Dependencies) {
           .status(201)
           .json(await addRoom(db, req.user!.id, parameter(req, 'stayId'), parse(roomBody, req.body)));
     });
-    router.delete('/rooms/:roomId', async (req, res) => {
+    router.patch('/rooms/:roomId', async (req, res) => {
         res.json(
             await renameRoom(db, req.user!.id, parameter(req, 'roomId'), parse(roomNameBody, req.body)),
         );
